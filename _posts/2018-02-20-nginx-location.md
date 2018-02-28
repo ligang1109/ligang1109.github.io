@@ -2,7 +2,6 @@
 layout: post
 title:  "Nginx的location指令配置"
 date:   2018-02-20 14:16:54 +0000
-categories: tech nginx
 ---
 
 在编写nginx配置中，正确的配置location指令是相当重要的。笔者在一次问题的排查中仔细研究了下这个指令的规则和使用方法，在这里和大家分享一下，如有不正确的地方还望指正。
