@@ -25,7 +25,7 @@ server {
 }
 ```
 
-当访问www.mos.com时，和预想的一样，会实际执行/home/web/www下面的index.php。
+当访问www.vmc7.com时，和预想的一样，会实际执行/home/web/www下面的index.php。
 
 下面再来看第二个配置：
 
