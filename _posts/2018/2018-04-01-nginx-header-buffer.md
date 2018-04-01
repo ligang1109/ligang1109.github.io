@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "nginx的client_header_buffer_size和large_client_header_buffers学习"
+title:  "Nginx的client_header_buffer_size和large_client_header_buffers学习"
 ---
 
 之前看到有人写的一篇关于nginx配置中large_client_header_buffers的问题排查的文章，其中提到：
