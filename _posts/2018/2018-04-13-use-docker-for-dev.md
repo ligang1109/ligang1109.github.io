@@ -125,7 +125,6 @@ Cloning into 'nginx'...
 ligang@vm-xubuntu16 ~/devspace/dbuild $ cd nginx/
 ligang@vm-xubuntu16 ~/devspace/dbuild/nginx $ ngxVer=1.8.1
 ligang@vm-xubuntu16 ~/devspace/dbuild/nginx $ docker build -t andals/nginx:${ngxVer} ./
-ligang@vm-xubuntu16 ~/devspace/dbuild/nginx $ docker build -t andals/nginx:${ngxVer} ./
 Sending build context to Docker daemon   30.7MB
 Step 1/8 : FROM andals/centos:7
 ......
