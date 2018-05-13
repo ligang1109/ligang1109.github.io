@@ -110,4 +110,80 @@ exec ok: true
 exec output: total 0
 ```
 
+### 执行rsync
+
+示例：
+
+```
+package main
+
+import (
+	"github.com/goinbox/shell"
+
+	"os/user"
+	"fmt"
+)
+
+func main() {
+	sou := "./tmp/rsync/sou/"
+	dst := "./tmp/rsync/dst/"
+	file := "rsync.txt"
+
+	cmd := "mkdir -p " + sou + "; mkdir -p " + dst + "; /bin/echo 'rsync sou' > " + sou + file
+	shell.RunCmd(cmd)
+
+	currentUser, _ := user.Current()
+	sshUser := currentUser.Username
+
+	result := shell.Rsync(sou, dst, "", sshUser, 3)
+	fmt.Println(string(result.Output))
+}
+```
+
+结果输出：
+
+```
+sending incremental file list
+rsync.txt
+
+sent 140 bytes  received 39 bytes  358.00 bytes/sec
+total size is 10  speedup is 0.06
+```
+
+### 从shell脚本中读取指定变量值
+
+示例：
+
+```
+package main
+
+import (
+	"github.com/goinbox/shell"
+
+	"fmt"
+)
+
+func main() {
+	//eg: params.sh
+	//user_name="zhangsan"
+	//nick_name="lisi"
+	//sex="boy"
+
+	shellScript := "params.sh"
+	paramMap := map[string]string{
+		"user_name": "user_name",
+		"nick_name": "nick_name",
+		"user_sex":  "sex",
+	}
+	params := shell.GetParamsFromShell(shellScript, paramMap)
+	fmt.Println(params)
+}
+```
+
+输出：
+
+```
+map[user_name:zhangsan nick_name:lisi user_sex:boy]
+```
+
 欢迎大家使用，使用中有遇到问题随时反馈，我们会尽快响应，谢谢！
