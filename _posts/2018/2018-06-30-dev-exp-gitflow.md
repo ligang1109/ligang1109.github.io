@@ -89,7 +89,7 @@ Branch user_admin_ligang set up to track remote branch user_admin_ligang from or
 
 #### 第一步：整理个人开发分支中待合并的提交，去掉无用的，仅保留有用的
 
-###### 切到user_admin_ligang分支
+- 切到user_admin_ligang分支
 
 ```
 ligang@vm-xubuntu  ~/devspace/gitflow $ git checkout user_admin_ligang
@@ -100,13 +100,13 @@ ligang@vm-xubuntu  ~/devspace/gitflow $ git branch
 ligang@vm-xubuntu  ~/devspace/gitflow $
 ```
 
-###### 查找newbase
+- 查找newbase
 
 在这个清理过程中，我需要清理掉tmp1和tmp2这2个临时提交，所以newbase就是init，这里获得它的版本号：
 
 ![find_newbase](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-06-30-dev-exp-gitflow/find_newbase.png?raw=true)
 
-###### 执行清理
+- 执行清理
 
 这一步是不可逆的，请谨慎操作，亦可先备份。
 
@@ -130,7 +130,7 @@ ligang@vm-xubuntu  ~/devspace/gitflow $
 
 请确保此时只有你一个人操作远程合作分支
 
-###### 更新本地远程合作分支到最新
+- 更新本地远程合作分支到最新
 
 ```
 ligang@vm-xubuntu ~/devspace/gitflow $ git checkout user_admin
@@ -141,11 +141,134 @@ From /home/ligang/repository/gitflow
 Already up to date.
 ```
 
-###### 切到user_admin_ligang分支
+- 切到user_admin_ligang分支
 
 ```
 ligang@vm-xubuntu ~/devspace/gitflow $ git checkout user_admin_ligang
 Switched to branch 'user_admin_ligang'
 ```
 
-###### 衍合个人开发分支
+- 衍合个人开发分支
+
+衍合前
+
+![user_admin_before_rebase](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-06-30-dev-exp-gitflow/user_admin_before_rebase.png?raw=true)
+
+衍合
+
+```
+ligang@vm-xubuntu ~/devspace/gitflow $ git rebase user_admin
+First, rewinding head to replay your work on top of it...
+Applying: done2
+Using index info to reconstruct a base tree...
+M	show.txt
+Falling back to patching base and 3-way merge...
+Auto-merging show.txt
+CONFLICT (content): Merge conflict in show.txt
+error: Failed to merge in the changes.
+Patch failed at 0001 done2
+Use 'git am --show-current-patch' to see the failed patch
+
+Resolve all conflicts manually, mark them as resolved with
+"git add/rm <conflicted_files>", then run "git rebase --continue".
+You can instead skip this commit: run "git rebase --skip".
+To abort and get back to the state before "git rebase", run "git rebase --abort".
+```
+
+这里有可能需要解决冲突，再continue完成整个衍合过程。
+
+衍合后
+
+![user_admin_after_rebase](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-06-30-dev-exp-gitflow/user_admin_after_rebase.png?raw=true)
+
+- 合并入远程合作分支
+
+```
+ligang@vm-xubuntu ~/devspace/gitflow $ git merge user_admin_ligang
+Updating add0d89..9ed757b
+Fast-forward
+ show.txt | 1 +
+ 1 file changed, 1 insertion(+)
+```
+
+合并后的提交历史
+
+![user_admin_merge](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-06-30-dev-exp-gitflow/user_admin_merge.png?raw=true)
+
+#### 删除个人开发分支
+
+```
+ligang@vm-xubuntu ~/devspace/gitflow $ git branch -d user_admin_ligang
+Deleted branch user_admin_ligang (was 9ed757b).
+ligang@vm-xubuntu ~/devspace/gitflow $ git push origin :user_admin_ligang
+To /home/ligang/repository/gitflow.git
+ - [deleted]         user_admin_ligang
+```
+
+## 合并到主干
+
+#### 操作前确认
+
+进行这一步操作前，请确认已经满足如下条件：
+
+1. 请确认待合并的远程合作分支上的开发目标已全部完成。
+1. 请确认即将把代码合并入主干进行发布上线。
+
+如不能全部满足上述所有条件，请不要进行此操作。
+
+#### 合并入主干
+
+请确保此时只有你一个人操作远程分支及主干
+
+- 更新本地主干到最新
+
+```
+ligang@vm-xubuntu ~/devspace/gitflow $ git checkout master
+Switched to branch 'master'
+Your branch is up to date with 'origin/master'.
+ligang@vm-xubuntu ~/devspace/gitflow $ git pull
+Already up to date.
+```
+
+- 切到user_admin分支
+
+```
+ligang@vm-xubuntu ~/devspace/gitflow $ git checkout user_admin
+Switched to branch 'user_admin'
+```
+
+- 衍合远程合作分支
+
+```
+ligang@vm-xubuntu ~/devspace/gitflow $ git rebase master
+Current branch user_admin is up to date.
+```
+
+这里的过程和远程合作分支衍合时是一样的，有可能需要解决冲突，再continue完成整个衍合过程。
+
+- 合并入主干
+
+```
+ligang@vm-xubuntu ~/devspace/gitflow $ git checkout master
+Switched to branch 'master'
+Your branch is up to date with 'origin/master'.
+ligang@vm-xubuntu ~/devspace/gitflow $ git merge user_admin
+Updating 73180c1..9ed757b
+Fast-forward
+ show.txt | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+```
+
+- 删除远程合作分支
+
+```
+ligang@vm-xubuntu ~/devspace/gitflow $ git branch -d user_admin
+Deleted branch user_admin (was 9ed757b).
+ligang@vm-xubuntu ~/devspace/gitflow $ git push origin :user_admin
+To /home/ligang/repository/gitflow.git
+ - [deleted]         user_admin
+```
+
+## 最终的提交历史
+
+![final](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-06-30-dev-exp-gitflow/final.png?raw=true)
