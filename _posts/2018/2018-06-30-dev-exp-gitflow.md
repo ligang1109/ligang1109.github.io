@@ -105,3 +105,23 @@ ligang@vm-xubuntu  ~/devspace/gitflow $
 在这个清理过程中，我需要清理掉tmp1和tmp2这2个临时提交，所以newbase就是init，这里获得它的版本号：
 
 ![find_newbase](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-06-30-dev-exp-gitflow/find_newbase.png?raw=true)
+
+###### 执行清理
+
+这一步是不可逆的，请谨慎操作，亦可先备份。
+
+![user_admin_ligang_rebase_i](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-06-30-dev-exp-gitflow/user_admin_ligang_rebase_i.png?raw=true)
+
+这里按照提示，我们编辑rebase信息:
+
+![user_admin_ligang_rebase_edit](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-06-30-dev-exp-gitflow/user_admin_ligang_rebase_edit.png?raw=true)
+
+保存退出，由于上面我们告诉rebase我们要重新编辑提交信息（r,reword），这里会进入提交信息编辑界面，我们修改最终提交信息如下：
+
+![user_admin_ligang_rebase_reword](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-06-30-dev-exp-gitflow/user_admin_ligang_rebase_reword.png?raw=true)
+
+保存退出，清理过程结束，这里再次查看提交历史：
+
+![user_admin_ligang_rebase_done](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-06-30-dev-exp-gitflow/user_admin_ligang_rebase_done.png?raw=true)
+
+这里可以看到，tmp1和tmp2已经被清理掉了，最终的done2是一个全新的提交。
