@@ -125,3 +125,27 @@ ligang@vm-xubuntu  ~/devspace/gitflow $
 ![user_admin_ligang_rebase_done](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-06-30-dev-exp-gitflow/user_admin_ligang_rebase_done.png?raw=true)
 
 这里可以看到，tmp1和tmp2已经被清理掉了，最终的done2是一个全新的提交。
+
+#### 第二步：合并个人分支到远程合作分支
+
+请确保此时只有你一个人操作远程合作分支
+
+###### 更新本地远程合作分支到最新
+
+```
+ligang@vm-xubuntu ~/devspace/gitflow $ git checkout user_admin
+Switched to branch 'user_admin'
+ligang@vm-xubuntu ~/devspace/gitflow $ git pull origin user_admin
+From /home/ligang/repository/gitflow
+ * branch            user_admin -> FETCH_HEAD
+Already up to date.
+```
+
+###### 切到user_admin_ligang分支
+
+```
+ligang@vm-xubuntu ~/devspace/gitflow $ git checkout user_admin_ligang
+Switched to branch 'user_admin_ligang'
+```
+
+###### 衍合个人开发分支
