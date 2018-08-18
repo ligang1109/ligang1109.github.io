@@ -5,6 +5,53 @@ title:  "gobox中的httpclient"
 
 今天来说下使用gobox中httpclient，这个包就相当于命令行的curl工具，用于发起http请求。
 
+## 重要的对象
+
+#### config
+
+```
+const (
+	DEFAULT_TIMEOUT        = 30 * time.Second
+	DEFAULT_KEEPALIVE_TIME = 30 * time.Second
+
+	DEFAULT_MAX_IDLE_CONNS_PER_HOST = 10
+)
+
+type Config struct {
+	LogLevel int
+
+	Timeout       time.Duration      // 连接及读写超时
+	KeepAliveTime time.Duration
+
+	MaxIdleConnsPerHost int
+}
+```
+
+#### request
+
+```
+type Request struct {
+	Method     string
+	Url        string
+	Body       []byte
+	Ip         string     // 相当于设置hostIp
+	ExtHeaders map[string]string
+
+	*http.Request
+}
+```
+
+#### response
+
+```
+type Response struct {
+	T        time.Duration  // 请求耗时
+	Contents []byte         // 响应内容
+
+	*http.Response
+}
+```
+
 ## 代码示例
 
 ```
