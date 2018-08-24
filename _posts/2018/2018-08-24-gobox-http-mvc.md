@@ -1,138 +1,54 @@
 ---
 layout: post
-title:  "gobox中的httpclient"
+title:  "gobox中的http请求处理框架"
 ---
 
-今天来说下使用gobox中httpclient，这个包就相当于命令行的curl工具，用于发起http请求。
+今天来说下使用gobox中的http请求处理框架
+
+## http请求处理架构图
+
+![](https://raw.githubusercontent.com/ligang1109/ligang1109.github.io/master/images/2018-08-24-gobox-http-mvc/gobox-http-mvc.png)
 
 ## 重要的对象
 
-#### config
+#### System
+
+system用于实现go官方包中的http.Handler接口，它的ServeHTTP方法中实现了请求处理框架。
+
+#### Router
+
+定义和实现MVC的路由查找过程。
 
 ```
-const (
-	DEFAULT_TIMEOUT        = 30 * time.Second
-	DEFAULT_KEEPALIVE_TIME = 30 * time.Second
+type Router interface {
+	MapRouteItems(cls ...controller.Controller)     // 自动将Controller对象中的Action方法映射到路由表
+	DefineRouteItem(pattern string, cl controller.Controller, actionName string)   // 手动添加路由规则，pattern为正则表达式
 
-	DEFAULT_MAX_IDLE_CONNS_PER_HOST = 10
-)
-
-type Config struct {
-	LogLevel int
-
-	Timeout       time.Duration      // 连接及读写超时
-	KeepAliveTime time.Duration
-
-	MaxIdleConnsPerHost int
+	FindRoute(path string) *Route    // 实现路由查找过程
 }
 ```
 
-#### request
+#### SimpleRouter
 
-```
-type Request struct {
-	Method     string
-	Url        string
-	Body       []byte
-	Ip         string     // 相当于设置hostIp
-	ExtHeaders map[string]string
+Router接口的一个实现，自动映射规则为：
 
-	*http.Request
-}
-```
+1. controller名称规则为：`([A-Z][A-Za-z0-9_]*)Controller$`，匹配内容转小写即为controllerName
+1. action名称规则为：`^([A-Z][A-Za-z0-9_]*)Action$`，匹配内容转小写后过滤掉`before和after`即为actionName
 
-#### response
 
-```
-type Response struct {
-	T        time.Duration  // 请求耗时
-	Contents []byte         // 响应内容
+自动路由查找规则如下：
 
-	*http.Response
-}
-```
+1. 将request_uri视为：`/controller/action`
+1. controller不存在，则默认为`index`，可以修改
+1. action不存在，则默认为`index`，可以修改
 
-## 代码示例
+自定义路由查找规则如下：
 
-```
-package main
+1. 对request_uri做正则匹配
+1. 如果匹配后存在捕获，则捕获内容会作为action中除context外的参数，依次传入，都是string类型
 
-import (
-	"github.com/goinbox/gohttp/httpclient"
+#### gracehttp
 
-	"time"
-	"net/http"
-	"fmt"
-)
-
-func main() {
-	config := httpclient.NewConfig()
-	config.Timeout = time.Second * 1
-
-	client := httpclient.NewClient(config, nil)
-
-	fmt.Println("clientGet")
-	clientGet(client)
-
-	fmt.Println("clientPost")
-	clientPost(client)
-}
-
-func clientGet(client *httpclient.Client) {
-	extHeaders := map[string]string{
-		"GO-CLIENT-1": "gobox-httpclient-1",
-		"GO-CLIENT-2": "gobox-httpclient-2",
-	}
-	req, _ := httpclient.NewRequest(http.MethodGet, "http://www.vmubt.com/test.php?a=1&b=2", nil, "127.0.0.1", extHeaders)
-
-	resp, err := client.Do(req, 1)
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(string(resp.Contents), resp.T.String())
-	}
-}
-
-func clientPost(client *httpclient.Client) {
-	extHeaders := map[string]string{
-		"GO-CLIENT-1":  "gobox-httpclient-1",
-		"GO-CLIENT-2":  "gobox-httpclient-2",
-		"Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-	}
-	params := map[string]interface{}{
-		"a": 1,
-		"b": "bb",
-		"c": "测试post",
-	}
-	req, _ := httpclient.NewRequest(http.MethodPost, "http://www.vmubt.com/test.php", httpclient.MakeRequestBodyUrlEncoded(params), "127.0.0.1", extHeaders)
-
-	resp, err := client.Do(req, 1)
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(string(resp.Contents), resp.T.String())
-	}
-}
-```
-
-输出：
-
-```
-clientGet
-array(0) {
-}
- 1.516315ms
-
-clientPost
-array(3) {
-  ["a"]=>
-  string(1) "1"
-  ["b"]=>
-  string(2) "bb"
-  ["c"]=>
-  string(10) "测试post"
-}
- 1.616384ms
-```
+这是一个支持平滑重启的httpserver
 
 欢迎大家使用，使用中有遇到问题随时反馈，我们会尽快响应，谢谢！
