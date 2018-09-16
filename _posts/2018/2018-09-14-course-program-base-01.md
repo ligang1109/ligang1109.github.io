@@ -119,6 +119,8 @@ Hello, world
 
 所以，线程是操作系统调度的最小单元。
 
+同一进程的多线程间，栈空间（stack）是相互独立的，而其它数据是共享的，所以高性能的多线程编程首先要解决的就是锁的问题。
+
 ### 协程
 
 一些现代的编程语言会有这个概念，它又是什么呢？
@@ -131,8 +133,10 @@ Hello, world
 
 要注意的是，只有内核对线程的调度才能够利用cpu的多核资源，让程序做到并行，所以在一个线程中的多个协程，是无法做到并行的。
 
-### 多进程和多线程的区别
+### 父子进程间的共享
 
 我们来看一张图： 
 
-![mem-arr](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/mem-arr.jpg?raw=true)
+![open](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/open.jpg?raw=true)
+
+这张图描述的是当我们在程序中用`open`这个系统调用打开一个文件时，操作系统中维护的相关数据结构，这里最重要的一个说明，就是最左面`process table entry`部分可以理解为是用户态程序中的，其它的`file table entry`和`v-node table entry`是内核中的。
