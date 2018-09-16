@@ -65,3 +65,38 @@ total 16
 这一步编译，实际上经历了如下处理流程：
 
 ![compile](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/compile.png?raw=true)
+
+当我们运行hello程序时，效果如下：
+
+```
+ligang@vm-xubuntu ~/tmp/c $ ./hello 
+Hello, world
+```
+
+实际执行流程如下：
+
+首先，我们通过键盘输入`./hello`，shell读取每个字符到寄存器中，然后存储到主存中：
+
+![run-hello-1](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/run-hello-1.png?raw=true)
+
+当我们输入`enter`后，shell知道我们完成了命令输入，将hello这个程序从磁盘加载到主存：
+
+![run-hello-2](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/run-hello-2.png?raw=true)
+
+使用DMA（direct memory access）技术，数据从磁盘直接加载到主存中，避免了通过CPU传输。
+
+当代码加载到主存后，CPU开始执行程序指令，这些指令拷贝`hello, world\n`字符串从内存到寄存器，然后传输到显示设备，显示设备负责显示结果：
+
+![run-hello-3](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/run-hello-3.png?raw=true)
+
+# 进程、线程、协程
+
+我们先来看下一个经典的程序在内存中的布局：
+
+![mem-arr](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/mem-arr.jpg?raw=true)
+
+1. `text`段就是我们的程序代码
+1. `initialized data`中是我们代码中明确初始化的一些全局变量、静态变量
+1. `bss`段中放的是代码中没有初始化的全局变量、静态变量
+1. `heap`是我们程序中动态申请的内存空间，例如调用`malloc`，这个空间很大
+1. `stack`中的空间由程序中的局部变脸和函数调用使用
