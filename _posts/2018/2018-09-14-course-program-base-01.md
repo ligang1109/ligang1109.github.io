@@ -63,3 +63,5 @@ total 16
 ```
 
 这一步编译，实际上经历了如下处理流程：
+
+![compile](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/compile.png?raw=true)
