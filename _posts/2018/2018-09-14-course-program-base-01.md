@@ -140,3 +140,21 @@ Hello, world
 ![open](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/open.jpg?raw=true)
 
 这张图描述的是当我们在程序中用`open`这个系统调用打开一个文件时，操作系统中维护的相关数据结构，这里最重要的一个说明，就是最左面`process table entry`部分可以理解为是用户态程序中的，其它的`file table entry`和`v-node table entry`是内核中的。
+
+当我们使用`fork`创建新进程后，用户态的内容都会复制一份给子进程，而内核中的部分会保持不变，如下图：
+
+![fork](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/fork.jpg?raw=true)
+
+所以，父子进程相当于可以通过相同的文件描述符来共享内核中的数据结构。这个特性，就是未来我们做服务的平滑重启的最重要的一点。
+
+# 结束语
+
+上面这些，都是笔者编程这些年，觉得非常受用的基础知识。正确的认识这些知识，很多问题你都可以自己想明白了。
+
+笔者也是在不断学习中，如果有错误的地方，还望指正，我们共同进步，谢谢！
+
+# 参考
+
+APUE：https://book.douban.com/subject/1788421/
+
+深入理解计算机系统：https://book.douban.com/subject/5407246/
