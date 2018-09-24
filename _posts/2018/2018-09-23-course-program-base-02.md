@@ -1,151 +1,172 @@
 ---
 layout: post
-title:  "应用编程基础课第一讲：编程基础知识"
+title:  "应用编程基础课第二讲：网络编程基础"
 ---
 
-本人从事linux下web编程多年，最近有幸给组内同学做培训，希望能给大家介绍下自己这些年在应用编程方面的经验，今天先给大家介绍下一些编程方面的需要掌握的基础知识:
+今天给大家介绍下一些网络编程方面的需要掌握的基础知识:
 
-# 操作系统介绍
+# 网络分层模型
 
-先来看一个unix系统的架构图：
+先来看一张图：
 
-![arch-of-unix](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/arch-of-unix.jpg?raw=true)
+![osi-tcp-ip](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-23/osi-tcp-ip.png?raw=true)
 
-从内向外，unix系统架构分为：
+从左到右向，分别是：
 
-1. 内核：控制硬件资源，提供应用程序运行的环境
-1. 系统调用：内核的编程接口
-1. shell和库函数：为应用程序提供编程、运行接口
-1. 应用程序：我们自己编写的程序
+1. OSI七层模型
+1. TCP/IP四层模型
+1. 应用程序实现部分和内核实现部分
 
-# 系统调用和库函数
+这里要认识到的是，我们最常用TCP的网络处理部分，都是由内核来完成的。
 
-应用程序可以调用系统调用和库函数，很多库函数都会调用系统调用，用下面这幅图来展示二者的区别：
+# TCP服务端和客户端编程模型
 
-![lib-syscall](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/lib-syscall.jpg?raw=true)
+## TCP连接创建和断开
 
-上面说过，内核用于控制硬件资源。例如从磁盘上读写文件，相当于需要控制硬盘这个硬件做IO操作，这个事情需要内核来做，那如何告诉内核要做这个事情呢？系统调用就是干这个事情的，它是内核暴露出来的一组编程接口，通过调用这个接口来执行内核中的代码。
+TCP创建连接需要三次握手，而断开连接需要四次挥手，如图：
 
-库函数不是内核代码，是更高一层的功能封装。如我们常用的`printf`函数，我们可以调用这个函数输出内容到显示器上，但控制显示器的输出是内核做的事情，系统调用提供的是`write`方法，`printf`相当于封装了`write`这个系统调用，给应用程序提供了一个更加友好的操作方式。
+![tcp-3-4](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-23/tcp-3-4.png?raw=true)
 
-总结下，系统调用相当于内核代码的调用入口，库函数是对应用程序要使用的功能的一层友好的封装。
+这张图清晰的说明了连接的建立、数据发送以及断开连接时所对应的编程函数，另外还有相应的TCP状态转换。
 
-# 用户态和内核态
+## 服务端客户端编程函数
 
-程序在运行时会有用户态和内核态的区别，请见下图：
+![client-server](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-23/client-server.png?raw=true)
 
-![user-kernel](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/user-kernel.jpg?raw=true)
+由此可见，服务端编程用到的主要函数为：
 
-简单一句话，程序执行时，如果执行的是我们编写的应用程序的代码，这些代码就是运行在用户态的；当代码中调用了系统调用后，接下来内核中的代码就会执行，内核中的代码就是运行在内核态的。
+1. socket：创建一个socket，返回的文件描述符fd之后用于bind和listen
+1. bind：绑定socket和ip+port
+1. listen：调用后，服务端状态变为`LISTEN`，可以接收网络连接
+1. accept：函数在连接建立后返回一个connfd，对这个文件描述符的读写就是在做网络接收和发送
+1. read：网络对端发送来的数据会放到内核的接收缓冲区，read就是从这个缓冲区中读取数据到应用程序
+1. write：应用程序要发送数据到网络对端时，调用此函数，会现将数据写到内核的发送缓冲区中，之后内核会负责将数据发送给网络对端
+1. close：关闭连接
 
-# 程序是如何执行的
+关于服务端的用于连接的fd和用于读写的fd，请见下图：
 
-我们用最经典的`hello world`来说明下程序是如何执行的。
+![listenfd](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-23/listenfd.png?raw=true)
 
-程序源码`hello.c`：
+![connfd](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-23/connfd.png?raw=true)
 
-```
-#include <stdio.h>
+客户端编程用到的函数为：
 
-int main() {
-    printf("Hello, world!\n");
+1. socket：创建一个socket，之后用于连接服务器，做数据读写用
+1. connect：发起到服务端的链接，返回时TCP三次握手完成
+1. write：同服务端的write
+1. read：同服务端的read
+1. close：关闭连接
 
-    return 0;
-}
-```
+# 几个概念
 
-首先，我们开发的`hello.c`存储在磁盘上，我们首先编译它，得到可执行文件`hello`：
+## backlog
 
-```
-ligang@vm-xubuntu ~/tmp/c $ gcc -o hello hello.c 
-ligang@vm-xubuntu ~/tmp/c $ ll
-total 16
--rwxrwxr-x 1 ligang ligang 8296 9月  15 16:07 hello
--rw-rw-r-- 1 ligang ligang   80 9月  15 16:05 hello.c
-```
+先附上一个图：
 
-这一步编译，实际上经历了如下处理流程：
+![backlog](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-23/backlog.png?raw=true)
 
-![compile](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/compile.png?raw=true)
+内核中会维护两个队列：
 
-当我们运行hello程序时，效果如下：
+1. 未完成连接的队列： 服务端收到客户端的连接请求（SYNC），在三次握手完成前，会放到这个队列中
+1. 完成连接的队列：完成三次握手后就创建了一个TCP连接，这个连接会放到这个队列中
 
-```
-ligang@vm-xubuntu ~/tmp/c $ ./hello 
-Hello, world
-```
+这两个队列中的连接数总和，就是backlog，也就是说，backlog定义了服务端可以同时维护的最大TCP连接数量
 
-实际执行流程如下：
+## RTT
 
-首先，我们通过键盘输入`./hello`，shell读取每个字符到寄存器中，然后存储到主存中：
+这个概念常常听到，请见图：
 
-![run-hello-1](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/run-hello-1.png?raw=true)
+![rtt](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-23/rtt.png?raw=true)
 
-当我们输入`enter`后，shell知道我们完成了命令输入，将hello这个程序从磁盘加载到主存：
+RTT的定义是`Round-Trip Time`，即数据包的往返时延
 
-![run-hello-2](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/run-hello-2.png?raw=true)
+## TCP Stream
 
-使用DMA（direct memory access）技术，数据从磁盘直接加载到主存中，避免了通过CPU传输。
+我们通常说TCP是流式的，这是什么样的概念呢？
 
-当代码加载到主存后，CPU开始执行程序指令，这些指令拷贝`hello, world\n`字符串从内存到寄存器，然后传输到显示设备，显示设备负责显示结果：
+![tcp-stream](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-23/socket-stream.png?raw=true)
 
-![run-hello-3](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/run-hello-3.png?raw=true)
+对应一个TCP连接，内核会给这个连接分配一个发送缓冲和接收缓冲，我们的应用程序对这来两个缓冲区的读写就是在做网络数据的接收和发送。
 
-# 进程、线程、协程
+而数据在网络上的传输是内核自己在维护的，当发送缓冲区中有数据后，内核就把这些数据发送给对端；同样的，当对端有数据过来时，内核会把它放到接收缓冲区中，等待应用程序的读写。
 
-我们先来看下一个经典的程序在内存中的布局：
+这样的发送和接收数据的过程，就像水流一样，所以我们说TCP是流式的。
 
-![mem-arr](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/mem-arr.jpg?raw=true)
+## TCP状态转换
 
-1. `text`段就是我们的程序代码
-1. `initialized data`中是我们代码中明确初始化的一些全局变量、静态变量
-1. `bss`段中放的是代码中没有初始化的全局变量、静态变量
-1. `heap`是我们程序中动态申请的内存空间，例如调用`malloc`，这个空间很大
-1. `stack`中的空间由程序中的局部变脸和函数调用使用
+TCP定义了很多状态，这些状态之间的转换关系如下图：
 
-### 进程
+![tcp-status](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-23/tcp-status.png?raw=true)
 
-什么是进程呢？我理解进程就是运行中的程序在操作系统中的一个具象化的表现。
+这些状态都记住有难度，需要时查下就好了。
 
-每个进程在内存中都拥有上面那些布局，而且都是独立的，不共享。
+# IO模型
 
-### 线程
+网络操作就是IO操作，而且网络的IO是最慢的一种了，网络编程的很大难点就是妥善的处理好这一块的问题。
 
-那么什么是线程呢？我自己理解，每个线程代表了一个独立的执行流。
+Unix定义了多种IO操作模型，分别是：
 
-举个例子，hello那个程序中，如果printf语句要执行10次，那么这10次可以一个挨着一个顺序来执行，这是一个执行流；
+1. 阻塞IO
+1. 非阻塞IO
+1. IO多路复用
+1. 信号驱动IO
+1. 异步IO
 
-也可以创建10个执行流，每个都执行一次printf，如果我们有至少10个cpu核，这样就可以做到10个printf并行执行。
+分别说明如下：
 
-所以，线程是操作系统调度的最小单元。
+## 阻塞IO
 
-同一进程的多线程间，栈空间（stack）是相互独立的，而其它数据是共享的，所以高性能的多线程编程首先要解决的就是锁的问题。
+这里有一点非常重要的概念要先说明下，那就是`阻塞`的是什么？
 
-### 协程
+![io-block](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-23/io-block.png?raw=true)
 
-一些现代的编程语言会有这个概念，它又是什么呢？
+首先要记住：数据在网络上的传输完全是内核在控制的，应用程序中的read和write只是在读写接收缓冲和发送缓冲。
 
-我理解，协程是一个用户态的概念。
+读阻塞：调用read时，如果接收缓冲区中没有数据，那么就会产生阻塞
 
-线程是由操作系统内核进行调度的，我们无法干预，协程是用户态程序，相当于应用程序自己进行了调度。
+写阻塞：调用write时，如果发送缓冲区中的数据没有发送出去，那么就会产生阻塞
 
-因为它是用户态程序，所以相当于多个协程会运行在一个线程中。
+那么如果没有产生阻塞，那么两者的执行时间为：
 
-要注意的是，只有内核对线程的调度才能够利用cpu的多核资源，让程序做到并行，所以在一个线程中的多个协程，是无法做到并行的。
+read的执行时间为：将内核接收缓冲区的内容拷贝到用户空间中的应用程序缓冲区
 
-### 父子进程间的共享
+write的执行时间为：将用户空间中的应用程序缓冲区的内容拷贝到内核的发送缓冲区
 
-我们来看一张图： 
+## 非阻塞IO
 
-![open](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/open.jpg?raw=true)
+理解了导致阻塞的原因，那么非阻塞就非常好理解了：
 
-这张图描述的是当我们在程序中用`open`这个系统调用打开一个文件时，操作系统中维护的相关数据结构，这里最重要的一个说明，就是最左面`process table entry`部分可以理解为是用户态程序中的，其它的`file table entry`和`v-node table entry`是内核中的。
+![io-nonblock](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-23/io-nonblock.png?raw=true)
 
-当我们使用`fork`创建新进程后，用户态的内容都会复制一份给子进程，而内核中的部分会保持不变，如下图：
+当内核缓冲区无法读写时，read和write就会返回`EWOULDBLOCK`，应用程序就需要过会儿再来操作。
 
-![fork](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-14/fork.jpg?raw=true)
+光是这样，还不能实现高性能的网络程序，这是因为我们无法判断应该什么时间再来做读写操作。
 
-所以，父子进程相当于可以通过相同的文件描述符来共享内核中的数据结构。这个特性，就是未来我们做服务的平滑重启的最重要的一点。
+如果一直循环读写，那么CPU占用会很居高不下；如果sleep一段时间，那么多长时间合适呢？
+
+所以，如果想开发高性能的网络程序，我们还需要别的武器：
+
+## IO多路复用
+
+这是操作系统提供的一种通知机制，告诉应用程序何时可以做读写操作：
+
+![io-multiple](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-23/io-multiple.png?raw=true)
+
+不同操作系统提供了不同的编程接口，一个非常有名的库`libevent`就是对这些库的一个统一接口封装。
+
+IO多路复用也是现在用的最多的一种高性能网络服务器的IO处理模型，例如`Nginx`
+
+## 信号驱动IO
+
+不同于IO多路复用，操作系统用信号的方式告诉应用程序何时可以做读写操作：
+
+![io-signal](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-23/io-signal.png?raw=true)
+
+## 异步IO
+
+最后这一种我没有用过，从概念上理解，相当于操作系统将数据做完用户空间和内核空间的复制后，才会通知应用程序：
+
+![io-async](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2018-09-23/io-async.png?raw=true)
 
 # 结束语
 
@@ -155,6 +176,8 @@ Hello, world
 
 # 参考
 
-APUE：https://book.douban.com/subject/1788421/
+UNIX网络编程（卷1）：https://book.douban.com/subject/4859464/
 
-深入理解计算机系统：https://book.douban.com/subject/5407246/
+TCP/IP详解（卷1）：https://book.douban.com/subject/26790659/
+
+Linux/UNIX系统编程手册：https://book.douban.com/subject/25809330/
