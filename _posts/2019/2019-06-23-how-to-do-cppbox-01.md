@@ -33,6 +33,23 @@ title:  "如何开发一个TcpServer -- 第一篇"
 
 编码规范遵守 “Google C++编码规范” https://zh-google-styleguide.readthedocs.io/en/latest/google-cpp-styleguide/contents/
 
+# cppbox简介
+
+项目构建工具使用cmake，主要目录如下：
+
+```
+├── cmake             // 里面是项目相关的cmake files
+└── src
+    ├── cppbox        // cppbox namespace
+    │   ├── log       // 完整的log库
+    │   │   └── test
+    │   ├── misc      // 零碎的的工具
+    │   │   └── test
+    │   └── net       // 网络库部分
+    │       └── test
+    └── http-parser
+```
+
 # 一个最简单的服务端程序
 
 摩天大楼都不是一天盖成的，这里我也是从最简单的功能开始，逐步完成。
