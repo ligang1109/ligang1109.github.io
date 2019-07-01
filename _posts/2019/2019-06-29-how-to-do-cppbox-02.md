@@ -15,6 +15,17 @@ title:  "如何开发一个TcpServer -- 第二篇"
 
 cppbox使用的是单进程多线程的模式，每个线程都有各自单独的事件循环，这也是无锁化编程的基础。
 
+![cppbox多线程](https://github.com/ligang1109/ligang1109.github.io/blob/master/images/2019-06-29/multi_thread.png?raw=true)
+
+## ListenThread
+
+这个线程在做的事情如下：
+
+1. 调用`accept`获得`connfd`
+1. 将这个`connfd`分配给一个`ConnectionThread`
+
+## ConnectionThread
+
 # 事件循环
 
 开源的事件循环库
