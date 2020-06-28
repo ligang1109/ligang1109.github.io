@@ -22,7 +22,7 @@
 1. 即买即用，无需等待。
 1. 针对使用频率不高的场景，可以按量服务，节约成本。
 1. 云服务高可用，无需担心主机故障带来的服务不可用问题。
-1. 单机性能不够可快速
+1. 单机性能不够可快速扩容。
 1. 软件环境部署仅需一次，之后可以制作为镜像，未来不再会有软件环境部署成本。
 
 朋友欣然接受了我的提议，并拜托我帮他部署好整个***Amber***环境。
@@ -35,7 +35,7 @@
 
 部署机器选择：
 
-
+![instance](https://raw.githubusercontent.com/ligang1109/ligang1109.github.io/master/images/2020-06-28/instance.png)
 
 # 部署Amber
 
@@ -131,33 +131,17 @@ source ~/.bashrc
 ```
 cd $AMBERHOME
 
-# 编译串行版本
-
-./configure --with-python /root/.conda/envs/amber18/bin/python gnu
-make install
-
-# 编译并行版本
-
-./configure --with-python /root/.conda/envs/amber18/bin/python -mpi gnu
-make install
-
-# 编译gpu版本
-
-./configure --with-python /root/.conda/envs/amber18/bin/python -cuda gnu
-make install
-
 # 编译gpu并行版本
 
-./configure --with-python /root/.conda/envs/amber18/bin/python -cuda -mpi gnu
-make install
+./configure --with-python /root/.conda/envs/amber18/bin/python -cuda -mpi -noX11 gnu
+make -j8 install
 ```
 
 ### 测试
 
 ```
-export DO_PARALLEL="mpirun --allow-run-as-root -np 8"
+export DO_PARALLEL="mpirun -np 8"
 
-make test.cuda
 make test.cuda_parallel
 ```
 
@@ -167,7 +151,47 @@ make test.cuda_parallel
 watch -n 10 nvidia-smi
 ```
 
+可以看到：
 
+```
+Every 10.0s: nvidia-smi                                                                               Sun Jun 28 17:18:57 2020
+
+Sun Jun 28 17:18:57 2020
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 440.33.01    Driver Version: 440.33.01    CUDA Version: 10.2     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|===============================+======================+======================|
+|   0  Tesla T4            On   | 00000000:00:08.0 Off |                    0 |
+| N/A   41C    P0    55W /  70W |   1219MiB / 15109MiB |    100%      Default |
++-------------------------------+----------------------+----------------------+
+
++-----------------------------------------------------------------------------+
+| Processes:                                                       GPU Memory |
+|  GPU       PID   Type   Process name                             Usage      |
+|=============================================================================|
+|    0     16583      C   /root/amber18/bin/pmemd.cuda_DPFP.MPI        151MiB |
+|    0     16584      C   /root/amber18/bin/pmemd.cuda_DPFP.MPI        151MiB |
+|    0     16585      C   /root/amber18/bin/pmemd.cuda_DPFP.MPI        151MiB |
+|    0     16586      C   /root/amber18/bin/pmemd.cuda_DPFP.MPI        151MiB |
+|    0     16587      C   /root/amber18/bin/pmemd.cuda_DPFP.MPI        151MiB |
+|    0     16588      C   /root/amber18/bin/pmemd.cuda_DPFP.MPI        151MiB |
+|    0     16589      C   /root/amber18/bin/pmemd.cuda_DPFP.MPI        151MiB |
+|    0     16590      C   /root/amber18/bin/pmemd.cuda_DPFP.MPI        151MiB |
++-----------------------------------------------------------------------------+
+```
+
+到这里***Amber***的软件环境我们就部署完成了。
+
+# 后续工作
+
+做好环境后，我们可以利用云服务器的镜像制作功能为部署好的软件环境制作自定义镜像，这样做有如下好处：
+
+1. 可随时使用该镜像创建新的计算实例。
+1. 之后机器上的软件环境有问题随时可用该镜像恢复。
+1. 可以使用腾讯云提供的 [批量计算](https://cloud.tencent.com/document/product/599) 及 [弹性伸缩](https://cloud.tencent.com/document/product/377) 服务解决算力不足问题。
+1. 可使用镜像的分享功能分享给其他需要的人。（这里也要注意软件授权问题）
 
 
 
