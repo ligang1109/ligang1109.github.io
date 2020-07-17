@@ -1,6 +1,6 @@
 Amber是一套分子动力学模拟程序，我们今天来说下如何使用云服务器安装部署这套程序。
 
-https://ambermd.org/images/amber_mol_fitted.jpg
+![Amber](https://ambermd.org/images/amber_mol_fitted.jpg)
 
 # 缘起
 
