@@ -316,17 +316,17 @@ ip net exec $myns sysctl -w net.ipv4.ip_forward=1
 
 设置后主机环境网络情况为：
 
-![方案概览]()
+![主机网络](https://raw.githubusercontent.com/ligang1109/ligang1109.github.io/master/images/2021-03-05/zj.png)
 
 设置后隔离环境网络情况为：
 
-![方案概览]()
+![隔离网络](https://raw.githubusercontent.com/ligang1109/ligang1109.github.io/master/images/2021-03-05/gl.png)
 
 和另一台cvm测试网络连通性：
 
 隔离环境连通另外一台cvm：
 
-![方案概览]()
+![隔离连通](https://raw.githubusercontent.com/ligang1109/ligang1109.github.io/master/images/2021-03-05/ping.png)
 
 ```
 //另一台cvm连通隔离环境
@@ -341,7 +341,9 @@ PING 10.0.6.43 (10.0.6.43) 56(84) bytes of data.
 rtt min/avg/max/mdev = 0.183/0.187/0.190/0.003 ms
 ```
 
+本方案从外部cvm访问主机网络中服务需要配置DNAT。
 
+# 写在后面
 
-
+网络隔离通常用于容器服务，上面是自己基于underlay网络做的一些实践，如有错误，还请指出，感谢阅读！
 
