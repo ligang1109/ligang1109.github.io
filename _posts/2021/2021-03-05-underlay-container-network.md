@@ -51,7 +51,9 @@ ubuntu@VM-6-46-ubuntu:~$ ip a
 
 # 方案详解
 
-![方案概览](https://raw.githubusercontent.com/ligang1109/ligang1109.github.io/master/images/2021-03-05/fafl.png)
+![方案分类](https://raw.githubusercontent.com/ligang1109/ligang1109.github.io/master/images/2021-03-05/fafl.png)
+
+## 双网卡
 
 
 
